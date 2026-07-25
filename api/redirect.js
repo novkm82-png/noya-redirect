@@ -116,14 +116,17 @@ module.exports = async function handler(req, res) {
       return;
     }
 
-    var now = new Date();
+   function getProjectTimeText() {
+  var date = new Date(Date.now() + 3 * 60 * 60 * 1000);
 
-    var openedAtText =
-      now.getFullYear() + "-" +
-      String(now.getMonth() + 1).padStart(2, "0") + "-" +
-      String(now.getDate()).padStart(2, "0") + " " +
-      String(now.getHours()).padStart(2, "0") + ":" +
-      String(now.getMinutes()).padStart(2, "0");
+  return date.getUTCFullYear() + "-" +
+    String(date.getUTCMonth() + 1).padStart(2, "0") + "-" +
+    String(date.getUTCDate()).padStart(2, "0") + " " +
+    String(date.getUTCHours()).padStart(2, "0") + ":" +
+    String(date.getUTCMinutes()).padStart(2, "0");
+}
+
+var openedAtText = getProjectTimeText();
 
     /*
       Важно:
