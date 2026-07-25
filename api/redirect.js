@@ -76,6 +76,10 @@ module.exports = async function handler(req, res) {
       return;
     }
 
+    /*
+      Добавляем short_code только в финальную ссылку.
+      В patient_access_request отдельное поле short_code НЕ отправляем.
+    */
     url.searchParams.set("short_code", code);
 
     if (!url.searchParams.get("doctor_ref") && item.doctor_ref_code) {
@@ -121,18 +125,22 @@ module.exports = async function handler(req, res) {
       String(now.getHours()).padStart(2, "0") + ":" +
       String(now.getMinutes()).padStart(2, "0");
 
+    /*
+      Важно:
+      id = UUID рекомендации, как было в старой рабочей схеме.
+      patient_number = короткий номер 000016 для отображения в ЛК врача.
+      patient_access_token и short_code сюда НЕ отправляем.
+    */
     var accessPayload = {
       id: recId,
 
       rec_id: recId,
       token: token,
-      patient_access_token: token,
 
       doctor_ref_code: doctorRef,
       source_recommendation: recId,
 
       patient_number: code,
-      short_code: code,
 
       patient_phone: patientPhone,
       phone: patientPhone,
@@ -161,9 +169,21 @@ module.exports = async function handler(req, res) {
     });
 
     if (!accessResponse.ok) {
+      var errorText = "";
+
+      try {
+        errorText = await accessResponse.text();
+      } catch (e) {
+        errorText = "";
+      }
+
       res.statusCode = 502;
       res.setHeader("Content-Type", "text/plain; charset=utf-8");
-      res.end("Не удалось создать patient_access_request через Vercel.");
+      res.end(
+        "Не удалось создать patient_access_request через Vercel. " +
+        "HTTP status: " + accessResponse.status + ". " +
+        "Ответ Directual: " + errorText
+      );
       return;
     }
 
